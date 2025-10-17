@@ -20,13 +20,20 @@ def cancel_order(ticker: Ticker, order_id: int) -> bool:
 # You can use print() and view the logs after sandbox run has completed
 class Strategy:
     def __init__(self) -> None:
-        pass
+        self.orderbook1 = []
+        self.orderbook2 = []
+        self.orderbook3 = []
     def on_trade_update(self, ticker: Ticker, side: Side, quantity: float, price: float) -> None:
         pass
     def on_orderbook_update(
         self, ticker: Ticker, side: Side, quantity: float, price: float
     ) -> None:
-        pass
+        if ticker == 1:
+            pass
+        if ticker == 2:
+            pass
+        if ticker == 3:
+            pass
     def on_account_update(
         self,
         ticker: Ticker,

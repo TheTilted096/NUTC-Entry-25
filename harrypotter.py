@@ -74,19 +74,23 @@ class Strategy:
         self.previous_ltc_sell_id = None
 
     def on_trade_update(self, ticker: Ticker, side: Side, quantity: float, price: float) -> None:
-        pass
+        return
     def on_orderbook_update(
         self, ticker: Ticker, side: Side, quantity: float, price: float
     ) -> None:
-        if ticker == ETH:
+        #print("thingy called with")
+        if ticker == Ticker.ETH:
+            #print("inner thingy called")
             self.orderbooketh.append((side, price, quantity))
+            #print("appended")
             self.ethcounter += 1
             if len(self.orderbooketh) == 1000: # ensure there is at least 1000 in the buffer
+                #print("got inside")
                 self.ethprice = 0 
                 for order in self.orderbooketh: # compute averages
-                    self.feature1eth += (int(side)/1000)
+                    self.feature1eth += (int(side.value)/1000)
                     self.feature2eth += int(quantity)
-                    self.feature3eth += (int(side)*quantity)
+                    self.feature3eth += (int(side.value)*quantity)
                     self.ethprice += order[1]/1000.0 
 
                 self.ethdata.append((self.feature1eth, self.feature2eth, self.feature3eth))
@@ -94,21 +98,28 @@ class Strategy:
                 
                 if self.ethcounter % 20 == 0: # on 20th update, place order         
                     #train model
+                    print("inside batch")
                     self.ethfitter.fit(np.array(self.ethdata)[:980, :], np.array(self.ethlabel)[-980:])
+                    print("after fit")
                     pred_market = self.ethfitter.predict(self.ethdata[-1]).item()
+                    print("after pred")
 
                     pct_diff = 100 * (pred_market - self.ethprice) / self.ethprice
-
                     buy_price = (90+20/(1+math.exp(-0.25 * pct_diff)))/100.0 * self.ethprice
                     sell_price = (88+24/(1+math.exp(-0.25 * pct_diff)))/100.0 * self.ethprice
-                    buy_quantity = (200/(1+math.exp(-0.25 * pct_diff))) * self.capital * 0.01 / buyprice
-                    sell_quantity = (200/(1+math.exp(-0.25 * pct_diff))) * self.ethamount / sellprice
+                    buy_quantity = (200/(1+math.exp(-0.25 * pct_diff))) * self.capital * 0.30 / buy_price
+                    sell_quantity = (200/(1+math.exp(-0.25 * pct_diff))) * self.ethamount / sell_price
 
-                    self.cancel_order(ETH, self.previous_eth_buy_id)
-                    self.cancel_order(ETH, self.previous_eth_sell_id)
+                    print("after calcs")
 
-                    self.previous_eth_buy_id = place_limit_order(BUY, ETH, int(buy_quantity), buy_price)
-                    self.previous_eth_sell_id = place_limit_order(SELL, ETH, int(sell_quantity), sell_price)
+                    self.cancel_order(0, self.previous_eth_buy_id)
+                    self.cancel_order(0, self.previous_eth_sell_id)
+                    print("after cancels")
+
+                    self.previous_eth_buy_id = place_limit_order(Side.BUY, Ticker.ETH, int(buy_quantity), buy_price)
+                    self.previous_eth_sell_id = place_limit_order(Side.SELL, Ticker.ETH, int(sell_quantity), sell_price)
+                    print("end")
+        return
     
 
     def on_account_update(
@@ -120,11 +131,13 @@ class Strategy:
         capital_remaining: float,
     ) -> None:
         self.capital = capital_remaining
-        if ticker == ETH:
-            if side == BUY:
+        if ticker == Ticker.ETH:
+            if side == Side.BUY:
                 self.amounteth += quantity
             else:
                 self.amounteth -= quantity
+
+        return
 
 
 

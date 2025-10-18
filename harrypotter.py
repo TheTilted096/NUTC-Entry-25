@@ -45,11 +45,9 @@ class Strategy:
     def on_orderbook_update(
         self, ticker: Ticker, side: Side, quantity: float, price: float
     ) -> None:
-        self.ethcounter += 1
-        self.btccounter += 1
-        self.ltccounter += 1
         if ticker == 0:
             self.orderbooketh.append((side, price, quantity))
+            self.ethcounter += 1
             if len(self.orderbooketh) == 100:
                 for order in self.orderbooketh:
                     self.feature1eth += (int(side)/10000)
@@ -58,6 +56,7 @@ class Strategy:
                     self.feature4eth = self.feature3eth/self.feature2eth
         if ticker == 1:
             self.orderbookbtc.append((side, price, quantity))
+            self.btccounter += 1
             if len(self.orderbookbtc) == 100:
                 for order in self.orderbookbtc:
                     self.feature1btc += (int(side)/10000)
@@ -66,6 +65,7 @@ class Strategy:
                     self.feature4btc = self.feature3btc/self.feature2btc
         if ticker == 2:
             self.orderbookltc.append((side, price, quantity))
+            self.ltccounter += 1
             if len(self.orderbookltc) == 100:
                 for oder in self.orderbookltc:
                     self.feature1ltc += (int(side)/10000)
@@ -73,13 +73,13 @@ class Strategy:
                     self.feature3ltc += (int(side)*quantity)
                     self.feature4ltc = self.feature3ltc/self.feature2ltc
         if self.ethcounter % 20 == 0:
-            pass
+            
             buy_price = 
             sell_price = 
             place_limit_order()
             place_limit_order()
             cancel_order()
-            cancel_order
+            cancel_order()
             previous_buy_id = 
             previous_sell_id = 
         if self.btccounter % 20 == 0:
@@ -97,8 +97,6 @@ class Strategy:
             previous_buy_id =
             previous_sell_id =
         self.process_batch_etc()
-        place_limit_order()
-        cancel_order()
 
     def on_account_update(
         self,

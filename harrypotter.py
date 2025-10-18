@@ -22,20 +22,50 @@ def cancel_order(ticker: Ticker, order_id: int) -> bool:
 # You can use print() and view the logs after sandbox run has completed
 class Strategy:
     def __init__(self) -> None:
-        self.orderbook1 = deque(maxlen = 10000)
-        self.orderbook2 = deque(maxlen = 10000)
-        self.orderbook3 = deque(maxlen = 10000)
+        self.orderbookbtc = deque(maxlen = 1000)
+        self.orderbooketh = deque(maxlen = 1000)
+        self.orderbookltc = deque(maxlen = 1000)
+        self.ethcounter = 0
+        self.btccounter = 0
+        self.ltccounter = 0
+        self.feature1eth = 0
+        self.feature2eth = 0
+        self.feature3eth = 0
+        self.feature1btc = 0
+        self.feature2btc = 0
+        self.feature3btc = 0
+        self.feature1ltc = 0
+        self.feature2ltc = 0
+        self.feature3ltc = 0
     def on_trade_update(self, ticker: Ticker, side: Side, quantity: float, price: float) -> None:
         pass
     def on_orderbook_update(
         self, ticker: Ticker, side: Side, quantity: float, price: float
     ) -> None:
+        self.ethcounter += 1
+        self.btccounter += 1
+        self.ltccounter += 1
+        if ticker == 0:
+            self.orderbooketh.append((side, price, quantity))
+            if len(self.orderbooketh) == 100:
+                for order in self.orderbooketh:
+                    self.feature1eth += (int(side)/10000)
         if ticker == 1:
-            self.orderbook1.append((side, price, quantity))
+            self.orderbookbtc.append((side, price, quantity))
+            if len(self.orderbookbtc) == 100:
+                for order in self.orderbookbtc:
+                    self.feature1btc += (int(side)/10000)
         if ticker == 2:
-            self.orderbook2.append((side, price, quantity))
-        if ticker == 3:
-            self.orderbook3.append((side, price, quantity))
+            self.orderbookltc.append((side, price, quantity))
+            if len(self.orderbookltc) == 100:
+                for oder in self.orderbookltc:
+                    self.feature1ltc += (int(side)/10000)
+        if self.ethcounter % 20 == 0:
+            pass
+        if self.btccounter % 20 == 0:
+            pass
+        if self.ltccounter % 20 == 0:
+            pass
     def on_account_update(
         self,
         ticker: Ticker,

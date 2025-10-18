@@ -1,6 +1,10 @@
 from enum import Enum
 from collections import deque
 
+from sklearn import linear_model
+import numpy
+import math
+
 class Side(Enum):
     BUY = 0
     SELL = 1
@@ -25,78 +29,87 @@ class Strategy:
         self.orderbookbtc = deque(maxlen = 1000)
         self.orderbooketh = deque(maxlen = 1000)
         self.orderbookltc = deque(maxlen = 1000)
-        self.ethcounter = 0
+
+        self.ethcounter = 0 # so every 20, push data point to the DQ
         self.btccounter = 0
         self.ltccounter = 0
-        self.feature1eth = 0
-        self.feature2eth = 0
-        self.feature3eth = 0
+
+        self.feature1eth = 0 # ratio of sell ORDERS to total ORDERS
+        self.feature2eth = 0 # total QUANTITY of all
+        self.feature3eth = 0 # total QUANTITY of sell
+
+        self.previousfeature1eth = 0
+        self.previousfeature2eth = 0
+        self.previousfeature3eth = 0
+
         self.feature1btc = 0
         self.feature2btc = 0
         self.feature3btc = 0
+
         self.feature1ltc = 0
         self.feature2ltc = 0
         self.feature3ltc = 0
+
         self.ethprice = None
         self.btcprice = None
         self.ltcprice = None
+
+        self.ethfitter = linear_model.Lasso(alpha=0.1)
+        self.btcfitter = linear_model.Lasso(alpha=0.1)
+        self.ltcfitter = linear_model.Lasso(alpha=0.1)
+
+        self.ethdata = deque(maxlen = 1000)
+        self.ethlabel = deque(maxlen = 1000)
+
+        self.amounteth = 0
+        self.amountbtc = 0
+        self.amountltc = 0
+        self.amountcapital = 100000
+
+        self.previous_eth_buy_id = None
+        self.previous_eth_sell_id = None
+        self.previous_btc_buy_id = None
+        self.previous_btc_sell_id = None
+        self.previous_ltc_buy_id = None
+        self.previous_ltc_sell_id = None
+
     def on_trade_update(self, ticker: Ticker, side: Side, quantity: float, price: float) -> None:
         pass
     def on_orderbook_update(
         self, ticker: Ticker, side: Side, quantity: float, price: float
     ) -> None:
-        if ticker == 0:
+        if ticker == ETH:
             self.orderbooketh.append((side, price, quantity))
             self.ethcounter += 1
-            if len(self.orderbooketh) == 100:
-                for order in self.orderbooketh:
-                    self.feature1eth += (int(side)/10000)
+            if len(self.orderbooketh) == 1000: # ensure there is at least 1000 in the buffer
+                self.ethprice = 0 
+                for order in self.orderbooketh: # compute averages
+                    self.feature1eth += (int(side)/1000)
                     self.feature2eth += int(quantity)
                     self.feature3eth += (int(side)*quantity)
-                    self.feature4eth = self.feature3eth/self.feature2eth
-        if ticker == 1:
-            self.orderbookbtc.append((side, price, quantity))
-            self.btccounter += 1
-            if len(self.orderbookbtc) == 100:
-                for order in self.orderbookbtc:
-                    self.feature1btc += (int(side)/10000)
-                    self.feature2btc += int(quantity)
-                    self.feature3btc += (int(side)*quantity)
-                    self.feature4btc = self.feature3btc/self.feature2btc
-        if ticker == 2:
-            self.orderbookltc.append((side, price, quantity))
-            self.ltccounter += 1
-            if len(self.orderbookltc) == 100:
-                for oder in self.orderbookltc:
-                    self.feature1ltc += (int(side)/10000)
-                    self.feature2ltc += int(quantity)
-                    self.feature3ltc += (int(side)*quantity)
-                    self.feature4ltc = self.feature3ltc/self.feature2ltc
-        if self.ethcounter % 20 == 0:
-            
-            buy_price = 
-            sell_price = 
-            place_limit_order()
-            place_limit_order()
-            cancel_order()
-            cancel_order()
-            previous_buy_id = 
-            previous_sell_id = 
-        if self.btccounter % 20 == 0:
-            place_limit_order()
-            place_limit_order()
-            cancel_order()
-            cancel_order()
-            previous_buy_id =
-            previous_sell_id =
-        if self.ltccounter % 20 == 0:
-            place_limit_order()
-            place_limit_order()
-            cancel_order()
-            cancel_order()
-            previous_buy_id =
-            previous_sell_id =
-        self.process_batch_etc()
+                    self.ethprice += order[1]/1000.0 
+
+                self.ethdata.append((self.feature1eth, self.feature2eth, self.feature3eth))
+                self.ethlabel.append(self.ethprice)                    
+                
+                if self.ethcounter % 20 == 0: # on 20th update, place order         
+                    #train model
+                    self.ethfitter.fit(np.array(self.ethdata)[:980, :], np.array(self.ethlabel)[-980:])
+                    pred_market = self.ethfitter.predict(self.ethdata[-1]).item()
+
+                    pct_diff = 100 * (pred_market - self.ethprice) / self.ethprice
+
+                    buy_price = (90+20/(1+math.exp(-0.25 * pct_diff)))/100.0 * self.ethprice
+                    sell_price = (88+24/(1+math.exp(-0.25 * pct_diff)))/100.0 * self.ethprice
+                    buy_quantity = (200/(1+math.exp(-0.25 * pct_diff))) * self.capital * 0.01 / buyprice
+                    sell_quantity = (200/(1+math.exp(-0.25 * pct_diff))) * self.ethamount / sellprice
+
+                    self.cancel_order(ETH, self.previous_eth_buy_id)
+                    self.cancel_order(ETH, self.previous_eth_sell_id)
+
+                    self.previous_eth_buy_id = place_limit_order(BUY, ETH, int(buy_quantity), buy_price)
+                    self.previous_eth_sell_id = place_limit_order(SELL, ETH, int(sell_quantity), sell_price)
+    
 
     def on_account_update(
         self,
@@ -106,4 +119,13 @@ class Strategy:
         quantity: float,
         capital_remaining: float,
     ) -> None:
-      pass
+        self.capital = capital_remaining
+        if ticker == ETH:
+            if side == BUY:
+                self.amounteth += quantity
+            else:
+                self.amounteth -= quantity
+
+
+
+        # actually increment amount variables

@@ -37,6 +37,9 @@ class Strategy:
         self.feature1ltc = 0
         self.feature2ltc = 0
         self.feature3ltc = 0
+        self.ethprice = None
+        self.btcprice = None
+        self.ltcprice = None
     def on_trade_update(self, ticker: Ticker, side: Side, quantity: float, price: float) -> None:
         pass
     def on_orderbook_update(
@@ -71,10 +74,32 @@ class Strategy:
                     self.feature4ltc = self.feature3ltc/self.feature2ltc
         if self.ethcounter % 20 == 0:
             pass
+            buy_price = 
+            sell_price = 
+            place_limit_order()
+            place_limit_order()
+            cancel_order()
+            cancel_order
+            previous_buy_id = 
+            previous_sell_id = 
         if self.btccounter % 20 == 0:
-            pass
+            place_limit_order()
+            place_limit_order()
+            cancel_order()
+            cancel_order()
+            previous_buy_id =
+            previous_sell_id =
         if self.ltccounter % 20 == 0:
-            pass
+            place_limit_order()
+            place_limit_order()
+            cancel_order()
+            cancel_order()
+            previous_buy_id =
+            previous_sell_id =
+        self.process_batch_etc()
+        place_limit_order()
+        cancel_order()
+
     def on_account_update(
         self,
         ticker: Ticker,

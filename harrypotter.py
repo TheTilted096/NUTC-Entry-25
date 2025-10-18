@@ -50,16 +50,25 @@ class Strategy:
             if len(self.orderbooketh) == 100:
                 for order in self.orderbooketh:
                     self.feature1eth += (int(side)/10000)
+                    self.feature2eth += int(quantity)
+                    self.feature3eth += (int(side)*quantity)
+                    self.feature4eth = self.feature3eth/self.feature2eth
         if ticker == 1:
             self.orderbookbtc.append((side, price, quantity))
             if len(self.orderbookbtc) == 100:
                 for order in self.orderbookbtc:
                     self.feature1btc += (int(side)/10000)
+                    self.feature2btc += int(quantity)
+                    self.feature3btc += (int(side)*quantity)
+                    self.feature4btc = self.feature3btc/self.feature2btc
         if ticker == 2:
             self.orderbookltc.append((side, price, quantity))
             if len(self.orderbookltc) == 100:
                 for oder in self.orderbookltc:
                     self.feature1ltc += (int(side)/10000)
+                    self.feature2ltc += int(quantity)
+                    self.feature3ltc += (int(side)*quantity)
+                    self.feature4ltc = self.feature3ltc/self.feature2ltc
         if self.ethcounter % 20 == 0:
             pass
         if self.btccounter % 20 == 0:
